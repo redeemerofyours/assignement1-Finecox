@@ -1,0 +1,16 @@
+name = "Assignment1"
+authors = ["Jáchym Janů"]
+
+[deps]
+ARCHModels = "6d3278bc-c23a-5105-85e5-0d57d2bf684f"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+MarketData = "945b72a4-3b13-509d-9b46-1525bb5c06de"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+YFinance = "e4b3b0a2-f9a3-42f3-aabb-32142cceaf77"
+
+[compat]
+DrWatson = "2.19.1"
+julia = "1.12.1"
