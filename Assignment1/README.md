@@ -5,7 +5,7 @@ This code base is using the [Julia Language](https://julialang.org/) and
 to make a reproducible scientific project named
 > Assignment1
 
-It is authored by Jáchym Janů.
+It is authored by Jáchym Janů, Bohdan Hukovych.
 
 To (locally) reproduce this project, do the following:
 
