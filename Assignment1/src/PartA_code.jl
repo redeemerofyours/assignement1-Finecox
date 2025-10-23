@@ -12,7 +12,7 @@ using DrWatson
 @quickactivate 
 
 # Pkg.add(["Distributions", "Plots", "ForwardDiff" , "Optim" , "MarketData" , "YFinance" , "ARCHModels", "CSV", "DataFrames", "RollingFunctions", "StatsBase", "Statistics", "IJulia"])
-# Pkg.add(["TimeSeries", "CSVFiles", "StatsPlots", "Flux", "ForecastPlots"])
+# Pkg.add(["TimeSeries", "CSVFiles", "StatsPlots", "Flux"])
 # Pkg.instantiate()
 
 Pkg.status()
@@ -36,7 +36,7 @@ using TimeSeries
 using CSVFiles
 using StatsPlots
 using Flux
-using ForecastPlots
+
 
 
 include(srcdir("functions.jl"))
@@ -199,29 +199,49 @@ hist = histogram(
 
 ## endregion
 ## region volatility ACF and PACF plots
+pure_data = values(rolling_std)
+max_lag = 20
 
-acf_plot =    acf(values(log_returns),
-        type = "cor",
-        lag = 20,
-        alpha = (0.90,0.95);
-        plot = true,
-        title = "ACF log returns VTYX - AdjClose to AdjClose",
-        bottom_margin = 20px,
-        left_margin = 20px,
-        top_margin = 20px
-        )
+acf_results = autocor(values(rolling_std), 1:max_lag) 
+lags_x = 1:max_lag
 
-pacf(values(log_returns))
 
-pacf_plot = pacf(values(log_returns),
-         type = "step-real",
-         lag = 20,
-         alpha = (0.90,0.95);
-         plot = true,
-         bottom_margin = 20px,
-        left_margin = 20px,
-        top_margin = 20px,
-        title = "PACF of Log Returns VTYX - AdjClose to AdjClose"
-        )
+N = length(values(rolling_std))
+ci = 1.96 / sqrt(N)
 
+
+acf_plot = plot(
+    lags_x, 
+    acf_results, 
+    seriestype = :bar,
+    marker = (:circle, 3), 
+    title = "ACF volatilitiy log returns",
+    xlabel = "Lag",
+    label = false,
+    linewidth = 1.5,
+    ylims = (-0.3, 1)
+)
+hline!([-ci, ci], line = (:dash, 1, :blue), label = "95% CI")
+
+pacf_results = StatsBase.pacf(pure_data, 1:max_lag)
+lags_x_pacf = 1:max_lag # Začínáme od lag 1
+
+# PACF Plot
+pacf_plot = plot(
+    lags_x_pacf, 
+    pacf_results, 
+    seriestype = :bar,
+    marker = (:circle, 3), 
+    title = "PACF volatilitiy log returns",
+    xlabel = "Lag",
+    label = false,
+    linewidth = 1.5,
+    ylims = (-0.3, 1)
+)
+hline!([-ci, ci], line = (:dash, 1, :blue), label = false)
+
+
+plot(acf_plot, pacf_plot, layout = (2, 1))
 ## endregion
+
+println("PartA_code.jl executed successfully.")
