@@ -248,13 +248,19 @@ plot(acf_plot, pacf_plot, layout = (2, 1))
 
 ARCHLMTest_results = ARCHModels.ARCHLMTest(values(log_returns), 1)
 
+
 GARCH_model_1_1 = fit(GARCH{1, 1}, values(log_returns))
-GARCH_model_2_1 = fit(GARCH{2, 1}, values(log_returns))
-GARCH_model_1_2 = fit(GARCH{1, 2}, values(log_returns))
-GARCH_model_2_2 = fit(GARCH{2, 2}, values(log_returns))
+GARCH_model_1_0 = fit(GARCH{1, 0}, values(log_returns))
+GARCH_model_0_1 = fit(GARCH{0,1}, values(log_returns))
+
+GARCH_model_1_1.spec
+GARCH_model_1_0.spec
+GARCH_model_0_1.spec
 
 
-
+aic_score = aic(GARCH_model_1_1)
+aic_score = aic(GARCH_model_1_0)
+aic_score = aic(GARCH_model_0_1)
 ## endregion
 
 
