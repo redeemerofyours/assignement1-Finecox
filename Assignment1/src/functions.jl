@@ -27,3 +27,5 @@ function create_summary_statistics(ta::TimeArray)
     
     return df
 end
+
+text = println("Functions module loaded successfully.")

@@ -199,14 +199,14 @@ hist = histogram(
 
 ## endregion
 ## region volatility ACF and PACF plots
-pure_data = values(rolling_std)
+pure_data = values(log_returns)
 max_lag = 20
 
-acf_results = autocor(values(rolling_std), 1:max_lag) 
+acf_results = autocor(values(log_returns), 1:max_lag) 
 lags_x = 1:max_lag
 
 
-N = length(values(rolling_std))
+N = length(values(log_returns))
 ci = 1.96 / sqrt(N)
 
 
@@ -243,5 +243,32 @@ hline!([-ci, ci], line = (:dash, 1, :blue), label = false)
 
 plot(acf_plot, pacf_plot, layout = (2, 1))
 ## endregion
+## region GARCH model fitting
+
+
+ARCHLMTest_results = ARCHModels.ARCHLMTest(values(log_returns), 1)
+
+GARCH_model_1_1 = fit(GARCH{1, 1}, values(log_returns))
+GARCH_model_2_1 = fit(GARCH{2, 1}, values(log_returns))
+GARCH_model_1_2 = fit(GARCH{1, 2}, values(log_returns))
+GARCH_model_2_2 = fit(GARCH{2, 2}, values(log_returns))
+
+
+
+## endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 println("PartA_code.jl executed successfully.")
