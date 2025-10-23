@@ -12,7 +12,7 @@ using DrWatson
 @quickactivate 
 
 # Pkg.add(["Distributions", "Plots", "ForwardDiff" , "Optim" , "MarketData" , "YFinance" , "ARCHModels", "CSV", "DataFrames", "RollingFunctions", "StatsBase", "Statistics", "IJulia"])
-# Pkg.add(["TimeSeries", "CSVFiles", "StatsPlots", "Flux"])
+# Pkg.add(["TimeSeries", "CSVFiles", "StatsPlots", "Flux", "ForecastPlots"])
 # Pkg.instantiate()
 
 Pkg.status()
@@ -36,6 +36,10 @@ using TimeSeries
 using CSVFiles
 using StatsPlots
 using Flux
+using ForecastPlots
+
+
+include(srcdir("functions.jl"))
 
 ## endregion
 ## region load data
@@ -105,11 +109,9 @@ p_ret = plot(log_returns,
 
 
 ## endregion
-## region calculate rolling volatility and create summary statistics
+## region calculate rolling volatility and plot it
 
-function calculate_rolling_volatility(log_returns::TimeArray, window::Int=20)
-    return moving(std, log_returns, window)
-end
+
 
 
 rolling_std =  calculate_rolling_volatility(log_returns, 5)
@@ -139,31 +141,10 @@ p_vol = plot(rolling_std,
 # plots_path = plotsdir("vtyx_log_returns_volatility_graf.png")
 # safesave(plots_path, p_vol)
 
-function create_summary_statistics(ta::TimeArray)
 
-    data_matrix = values(ta) 
-    data_vector = data_matrix[:, 1]
+## endregion
+## region rolling volatility and its summary statistics
 
-    clean_data = filter(!isnan, data_vector)
-
-    stats = Dict(
-        "N" => length(clean_data),
-        "Mean" => mean(clean_data),
-        "Std Dev" => std(clean_data),
-        "Min" => minimum(clean_data),
-        "Max" => maximum(clean_data),
-        "Median" => median(clean_data),
-        "Skewness" => skewness(clean_data),
-        "Kurtosis" => kurtosis(clean_data) + 3 
-    )
-    
-
-    df = DataFrame(Statistics = collect(keys(stats)), Value = collect(values(stats)))
-
-    df[2:end, :Value] = round.(df[2:end, :Value], digits=4)
-    
-    return df
-end
 summary_table = create_summary_statistics(log_returns)
 
 
@@ -218,5 +199,29 @@ hist = histogram(
 
 ## endregion
 ## region volatility ACF and PACF plots
+
+acf_plot =    acf(values(log_returns),
+        type = "cor",
+        lag = 20,
+        alpha = (0.90,0.95);
+        plot = true,
+        title = "ACF log returns VTYX - AdjClose to AdjClose",
+        bottom_margin = 20px,
+        left_margin = 20px,
+        top_margin = 20px
+        )
+
+pacf(values(log_returns))
+
+pacf_plot = pacf(values(log_returns),
+         type = "step-real",
+         lag = 20,
+         alpha = (0.90,0.95);
+         plot = true,
+         bottom_margin = 20px,
+        left_margin = 20px,
+        top_margin = 20px,
+        title = "PACF of Log Returns VTYX - AdjClose to AdjClose"
+        )
 
 ## endregion
