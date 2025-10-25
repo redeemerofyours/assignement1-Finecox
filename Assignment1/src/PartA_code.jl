@@ -12,7 +12,7 @@ using DrWatson
 @quickactivate 
 
 # Pkg.add(["Distributions", "Plots", "ForwardDiff" , "Optim" , "MarketData" , "YFinance" , "ARCHModels", "CSV", "DataFrames", "RollingFunctions", "StatsBase", "Statistics", "IJulia"])
-# Pkg.add(["TimeSeries", "CSVFiles", "StatsPlots", "Flux"])
+# Pkg.add(["_aSeries", "CSVFiles", "StatsPlots", "Flux"])
 # Pkg.instantiate()
 
 Pkg.status()
@@ -36,7 +36,6 @@ using TimeSeries
 using CSVFiles
 using StatsPlots
 using Flux
-
 
 
 include(srcdir("functions.jl"))
@@ -144,7 +143,6 @@ p_vol = plot(rolling_std,
 
 ## endregion
 ## region rolling volatility and its summary statistics
-
 summary_table = create_summary_statistics(log_returns)
 
 
@@ -182,17 +180,17 @@ hist = histogram(
     xrotation = 90,
     bottom_margin = 20px,
     left_margin = 20px,
-    top_margin = 20px           
+    top_margin = 20px,
+    xlims = [minimum(values(log_returns)), maximum(values(log_returns))]           
     )
     plot!(
     fitted_dist, 
     linewidth = 2, 
     linecolor = :red, 
-    xlims = extrema(log_returns),
     label = "Normal Distribution",
     legend = :left
 )
-
+# extrema(log_returns)
 
 # plots_path = plotsdir("vtyx_log_returns_log_returns_histogram.png")
 # safesave(plots_path, hist)
@@ -258,23 +256,127 @@ GARCH_model_1_0.spec
 GARCH_model_0_1.spec
 
 
-aic_score = aic(GARCH_model_1_1)
-aic_score = aic(GARCH_model_1_0)
-aic_score = aic(GARCH_model_0_1)
+aic_score_1_1 = aic(GARCH_model_1_1)
+
+
+
+## endregion
+
+
+## region GARCH model mean forecasting
+N = length(log_returns)
+window_size = 30 
+h_ahead = 1      
+
+forecast_mean = fill(NaN, N)
+forecast_volatility = fill(NaN, N)
+
+data_values = values(log_returns)
+time_indices = timestamp(log_returns)
+
+for i in window_size:(N - h_ahead)
+
+    data_window = data_values[(i - window_size + 1):i]
+
+    try
+
+        fitted_model = fit(GARCH{1, 1}, data_window)
+
+        pred = predict(fitted_model, :return,  h_ahead)
+ 
+        forecast_mean[i + h_ahead] = pred[1][h_ahead] 
+
+        forecast_volatility[i + h_ahead] = sqrt(pred[2][h_ahead]) 
+
+    catch e
+
+        @warn "Chyba fitování v kroku $i: $e"
+
+    end
+end
+
+
+Forecast_mean = plot(log_returns, 
+         label="log_returns", 
+         linecolor=:blue, 
+         linewidth=1.5,
+         title="GARCH(1,1) Rolling Window (30) Forecast",
+         xlabel="Date",
+         ylabel="Log Returns",
+         xticks = (dates[1:40:end], dates[1:40:end]),
+        xrotation = 50,
+        ylims = (-2, 1),
+         bottom_margin = 20px,
+         left_margin = 20px,
+         top_margin = 20px
+        )
+
+plot!(Forecast_mean, time_indices, forecast_mean, 
+      label="GARCH(1,1) Forecast Mean", 
+      linecolor=:red, 
+      linewidth=2.0,
+      legend=:bottomleft)
+
+
+
+## endregion
+## region GARCH model variance forecasting
+
+N = length(log_returns)
+window_size = 30 
+h_ahead = 1      
+
+forecast_mean = fill(NaN, N)
+forecast_volatility = fill(NaN, N)
+
+data_values = values(log_returns)
+time_indices = timestamp(log_returns)
+
+for i in window_size:(N - h_ahead)
+
+    data_window = data_values[(i - window_size + 1):i]
+
+    try
+
+        fitted_model = fit(GARCH{1, 1}, data_window)
+
+        pred = predict(fitted_model, :variance,  h_ahead)
+ 
+        forecast_mean[i + h_ahead] = pred[1][h_ahead] 
+
+        forecast_volatility[i + h_ahead] = sqrt(pred[2][h_ahead]) 
+    catch e
+
+        @warn "Chyba fitování v kroku $i: $e"
+
+    end
+end
+
+
+Forecast_volatility = plot(rolling_std, 
+         label="std log_returns", 
+         linecolor=:blue, 
+         linewidth=1.5,
+         title="GARCH(1,1) Rolling Window (30) Forecast",
+         xlabel="Date",
+         ylabel="Volatility of Log Returns",
+         xticks = (dates[1:40:end], dates[1:40:end]),
+        xrotation = 50,
+        ylims = (-2, 1),
+         bottom_margin = 20px,
+         left_margin = 20px,
+         top_margin = 20px
+        )
+
+plot!(Forecast_volatility, time_indices, forecast_mean, 
+      label="GARCH(1,1) Forecast volatilitiy", 
+      linecolor=:red, 
+      linewidth=2.0,
+      legend=:bottomleft)
+
 ## endregion
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-println("PartA_code.jl executed successfully.")
+display("Part A code executed successfully.")
